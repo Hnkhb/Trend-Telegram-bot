@@ -1,28 +1,30 @@
+// ===== Telegram Trend Bot + OpenAI =====
 const express = require('express');
-const fetch = require('node-fetch');
-
+const fetch = require('node-fetch'); // v2
 const app = express();
 app.use(express.json());
 
-const BOT_TOKEN = process.env.BOT_TOKEN;
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+// ===== Environment Variables =====
+const BOT_TOKEN = process.env.BOT_TOKEN;         // ضع توكن بوت Telegram
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY; // ضع مفتاح OpenAI
 
-// قاعدة بيانات المستخدمين
+// ===== In-memory database for users =====
 let users = {};
 
-// أنواع المحتوى واللغات
+// ===== Commands and options =====
 const content_types = ["TikTok","YouTube","General","Custom"];
 const languages = ["Arabic","English","French","Other"];
 
-// استقبال POST من Telegram
+// ===== Telegram POST endpoint =====
 app.post('/', async (req, res) => {
   const message = req.body.message;
   if (!message) return res.sendStatus(200);
 
+  console.log('Message received:', message); // تتبع وصول الرسائل
+
   const user_id = message.from.id;
   const text = message.text;
 
-  // إنشاء مستخدم جديد إذا لم يكن موجود
   if (!users[user_id]) {
     users[user_id] = {
       tries_left: 5,
@@ -36,7 +38,7 @@ app.post('/', async (req, res) => {
 
   const now = new Date();
 
-  // -------- /trend --------
+  // ===== /trend =====
   if(text === '/trend') {
     let sub_active = users[user_id].subscription_active && new Date(users[user_id].subscription_expiry) > now;
     if(!sub_active && users[user_id].tries_left <= 0){
@@ -44,21 +46,25 @@ app.post('/', async (req, res) => {
     } else {
       if(!sub_active) users[user_id].tries_left -= 1;
       await sendMessage(user_id, "Choose content type:", {
-        keyboard: [
-          [{ text: "TikTok" }, { text: "YouTube" }],
-          [{ text: "General" }, { text: "Custom" }]
-        ],
-        one_time_keyboard: true
+        reply_markup: {
+          keyboard: [
+            [{ text: "TikTok" }, { text: "YouTube" }],
+            [{ text: "General" }, { text: "Custom" }]
+          ],
+          one_time_keyboard: true
+        }
       });
     }
   }
 
-  // -------- /buy --------
+  // ===== /buy =====
   else if(text.startsWith('/buy')) {
-    await sendMessage(user_id, `Choose package:\n1️⃣ $2 = 5 tries\n2️⃣ $5 = 1 week unlimited\n3️⃣ $10 = 1 month unlimited\n4️⃣ $60 = 1 year (50% off)`, { remove_keyboard: true });
+    await sendMessage(user_id, `Choose package:\n1️⃣ $2 = 5 tries\n2️⃣ $5 = 1 week unlimited\n3️⃣ $10 = 1 month unlimited\n4️⃣ $60 = 1 year (50% off)`, {
+      reply_markup: { remove_keyboard: true }
+    });
   }
 
-  // -------- /earn --------
+  // ===== /earn =====
   else if(text.startsWith('/earn')) {
     await sendMessage(user_id, `Get extra free try! Follow one of the platforms below and send a screenshot:\n
 1️⃣ Facebook: https://facebook.com/soundous.Eco
@@ -66,41 +72,45 @@ app.post('/', async (req, res) => {
 3️⃣ Instagram: https://instagram.com/@Xrst_vente
 4️⃣ TikTok: https://tiktok.com/@Xrst_vente
 (Max 3 per day)`, {
-      keyboard: [
-        [{ text: "Facebook" }, { text: "YouTube" }],
-        [{ text: "Instagram" }, { text: "TikTok" }]
-      ],
-      one_time_keyboard: true
+      reply_markup: {
+        keyboard: [
+          [{ text: "Facebook" }, { text: "YouTube" }],
+          [{ text: "Instagram" }, { text: "TikTok" }]
+        ],
+        one_time_keyboard: true
+      }
     });
   }
 
-  // -------- /invite --------
+  // ===== /invite =====
   else if(text.startsWith('/invite')) {
     await sendMessage(user_id, `Share your bot link:\nhttps://t.me/TrendForgeIdeasBot\nEach new user = +5 free try (max 3 per day).`);
   }
 
-  // -------- اختيار نوع المحتوى --------
+  // ===== Choose content type =====
   else if(content_types.includes(text)) {
     users[user_id].pending_content_type = text;
     await sendMessage(user_id, "Choose language:", {
-      keyboard: [
-        [{ text: "Arabic" }, { text: "English" }],
-        [{ text: "French" }, { text: "Other" }]
-      ],
-      one_time_keyboard: true
+      reply_markup: {
+        keyboard: [
+          [{ text: "Arabic" }, { text: "English" }],
+          [{ text: "French" }, { text: "Other" }]
+        ],
+        one_time_keyboard: true
+      }
     });
   }
 
-  // -------- اختيار اللغة --------
+  // ===== Choose language and generate script =====
   else if(languages.includes(text) && users[user_id].pending_content_type) {
     users[user_id].pending_language = text;
     const content_type = users[user_id].pending_content_type;
     const language = users[user_id].pending_language;
 
+    // Reset pending choices
     users[user_id].pending_content_type = null;
     users[user_id].pending_language = null;
 
-    // طلب سكريبت من OpenAI
     try {
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
@@ -125,7 +135,7 @@ app.post('/', async (req, res) => {
   res.sendStatus(200);
 });
 
-// دالة إرسال رسالة Telegram
+// ===== Send Telegram message function =====
 async function sendMessage(chat_id, text, extra={}) {
   await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
     method: 'POST',
@@ -134,6 +144,6 @@ async function sendMessage(chat_id, text, extra={}) {
   });
 }
 
-// تشغيل السيرفر
+// ===== Start Express server =====
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
