@@ -1,13 +1,16 @@
 {
   "name": "telegram-trend-bot",
   "version": "1.0.0",
-  "description": "Telegram bot for trending content ideas",
+  "description": "",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
-  "type": "module",
   "engines": {
     "node": "20.x"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "node-fetch": "^3.4.0"
   }
 }
