@@ -55,12 +55,17 @@ app.post('/', async (req, res) => {
 
   // -------- /buy --------
   else if(text.startsWith('/buy')) {
-    await sendMessage(user_id, `Choose package:\n1️⃣ $2 = 5 tries\n2️⃣ $5 = 1 week unlimited\n3️⃣ $10 = 1 month unlimited\n3️⃣ $60 = 1 year (50% off)`, { remove_keyboard: true });
+    await sendMessage(user_id, `Choose package:\n1️⃣ $2 = 5 tries\n2️⃣ $5 = 1 week unlimited\n3️⃣ $10 = 1 month unlimited\n4️⃣ $60 = 1 year (50% off)`, { remove_keyboard: true });
   }
 
   // -------- /earn --------
   else if(text.startsWith('/earn')) {
-    await sendMessage(user_id, `Get extra free try! Follow one of the platforms below and send a screenshot:\n1️⃣ Facebook\n2️⃣ YouTube\n3️⃣ Instagram\n4️⃣ TikTok`, {
+    await sendMessage(user_id, `Get extra free try! Follow one of the platforms below and send a screenshot:\n
+1️⃣ Facebook: https://facebook.com/soundous.Eco
+2️⃣ YouTube: https://youtube.com/@Xrst_vente
+3️⃣ Instagram: https://instagram.com/@Xrst_vente
+4️⃣ TikTok: https://tiktok.com/@Xrst_vente
+(Max 3 per day)`, {
       keyboard: [
         [{ text: "Facebook" }, { text: "YouTube" }],
         [{ text: "Instagram" }, { text: "TikTok" }]
