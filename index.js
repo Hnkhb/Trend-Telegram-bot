@@ -23,9 +23,13 @@ app.post('/', async (req, res) => {
   const user_id = message.from.id;
   const text = message.text;
 
-  console.log('Message received:', message); // تتبع الرسائل
+  console.log('Message received:', message);
   console.log('User text:', text);
 
+  // ---- اختبار إرسال رسالة للتأكد من عمل البوت ----
+  await sendMessage(user_id, `✅ Bot is working! Received your message: ${text}`);
+
+  // ---- Initialize user if not exists ----
   if (!users[user_id]) {
     users[user_id] = {
       tries_left: 5,
@@ -102,7 +106,7 @@ app.post('/', async (req, res) => {
     });
   }
 
-  // ===== Choose language and generate script =====
+  // ===== Choose language =====
   else if(languages.includes(text) && users[user_id].pending_content_type) {
     users[user_id].pending_language = text;
     const content_type = users[user_id].pending_content_type;
@@ -112,25 +116,9 @@ app.post('/', async (req, res) => {
     users[user_id].pending_content_type = null;
     users[user_id].pending_language = null;
 
-    try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          "Authorization": `Bearer ${OPENAI_API_KEY}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          "model": "gpt-4o-mini",
-          "messages": [{"role":"user","content":`Create a 45-second video script for ${content_type} in ${language}. Include hook and hashtags.`}]
-        })
-      });
-      const data = await response.json();
-      const script = data.choices[0].message.content;
-      await sendMessage(user_id, script);
-    } catch (err) {
-      console.error(err);
-      await sendMessage(user_id, "❌ Error generating script. Try again later.");
-    }
+    // ---- هنا يمكن إضافة OpenAI بعد التأكد من عمل البوت ----
+    await sendMessage(user_id, `🎬 Generating script for ${content_type} in ${language}... (OpenAI integration coming soon)`);
+
   }
 
   res.sendStatus(200);
