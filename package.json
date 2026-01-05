@@ -1,7 +1,7 @@
 {
   "name": "telegram-trend-bot",
   "version": "1.0.0",
-  "description": "",
+  "description": "Telegram bot for trending content generation",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "express": "^4.18.2",
-    "node-fetch": "^3.4.0"
-  }
+    "node-fetch": "2.6.9"
+  },
+  "license": "MIT"
 }
