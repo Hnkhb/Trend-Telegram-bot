@@ -5,8 +5,8 @@ const app = express();
 app.use(express.json());
 
 // ===== Environment Variables =====
-const BOT_TOKEN = process.env.BOT_TOKEN;         // ضع توكن بوت Telegram
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY; // ضع مفتاح OpenAI
+const BOT_TOKEN = process.env.BOT_TOKEN;         // Telegram Bot Token
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY; // OpenAI API Key
 
 // ===== In-memory database for users =====
 let users = {};
@@ -20,10 +20,11 @@ app.post('/', async (req, res) => {
   const message = req.body.message;
   if (!message) return res.sendStatus(200);
 
-  console.log('Message received:', message); // تتبع وصول الرسائل
-
   const user_id = message.from.id;
   const text = message.text;
+
+  console.log('Message received:', message); // تتبع الرسائل
+  console.log('User text:', text);
 
   if (!users[user_id]) {
     users[user_id] = {
@@ -42,7 +43,7 @@ app.post('/', async (req, res) => {
   if(text === '/trend') {
     let sub_active = users[user_id].subscription_active && new Date(users[user_id].subscription_expiry) > now;
     if(!sub_active && users[user_id].tries_left <= 0){
-      await sendMessage(user_id, "🚫 No tries left. Use /buy, /earn or /invite.");
+      await sendMessage(user_id, "🚫 You have no tries left. Use /buy, /earn or /invite.");
     } else {
       if(!sub_active) users[user_id].tries_left -= 1;
       await sendMessage(user_id, "Choose content type:", {
